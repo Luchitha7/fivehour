@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+- Clicking the widget opens the panel on the desktop you're on, instead of switching to another one (macOS)
+- No leftover highlight on Settings after clicking it
+- README explains how to run fivehour from source without installing
+
 ## 0.1.1 (2026-11-05)
 
 - Explain an expired Claude Code login in plain words instead of "HTTP 401", and stop retrying it every few minutes
