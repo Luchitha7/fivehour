@@ -1,14 +1,30 @@
+<div align="center">
+
+<img src="build/icon.png" width="112" alt="fivehour icon">
+
 # fivehour
 
+**Your Claude 5-hour usage limit, always in view.**
+
+% used, a reset countdown and timely alerts, right in your menu bar or system tray.
+
+[![Latest release](https://img.shields.io/github/v/release/Luchitha7/fivehour?label=release&color=c96442)](https://github.com/Luchitha7/fivehour/releases/latest)
+[![Downloads](https://img.shields.io/github/downloads/Luchitha7/fivehour/total?color=34c778)](https://github.com/Luchitha7/fivehour/releases)
 [![CI](https://github.com/Luchitha7/fivehour/actions/workflows/ci.yml/badge.svg)](https://github.com/Luchitha7/fivehour/actions/workflows/ci.yml)
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
 ![Platforms](https://img.shields.io/badge/platform-macOS%20%7C%20Windows%20%7C%20Linux-lightgrey)
 
-**A menu bar / system tray timer for your Claude 5-hour usage limit.**
+[**⬇ Download**](https://github.com/Luchitha7/fivehour/releases/latest) · [Features](#features) · [Set up](#set-up-one-minute) · [Privacy](#privacy-and-security) · [Contributing](CONTRIBUTING.md)
 
-Shows how much of your current 5-hour window you've used, when it resets, and pings you before you run out or before the window ends.
+<br>
 
-> Unofficial community project. Not affiliated with or endorsed by Anthropic.
+<img src="docs/screenshot.png" width="680" alt="fivehour panel showing 62% of the 5-hour limit used and a reset in 2h 14m">
+
+<sub>Unofficial community project. Not affiliated with or endorsed by Anthropic.</sub>
+
+</div>
+
+<br>
 
 ## Features
 
