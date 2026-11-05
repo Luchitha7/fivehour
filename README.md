@@ -126,13 +126,7 @@ npm run dist    # build installers for the OS you're on (output in dist/)
 
 ### Releasing
 
-Bump `version` in `package.json`, commit, then push a matching tag:
-
-```bash
-git tag v0.1.0 && git push origin v0.1.0
-```
-
-GitHub Actions builds the Mac, Windows and Linux installers and publishes them on the [Releases](https://github.com/Luchitha7/fivehour/releases) page.
+Tag a version on `main` and GitHub Actions builds the Mac, Windows and Linux installers and publishes them on the [Releases](https://github.com/Luchitha7/fivehour/releases) page. The full steps are in [CONTRIBUTING.md](CONTRIBUTING.md#versioning-and-releases).
 
 ## Development
 
@@ -152,7 +146,11 @@ src/update.js               daily "update available" check
 src/ui/                     popup and widget
 ```
 
-App data lives in `~/.fivehour/`. See [CONTRIBUTING.md](CONTRIBUTING.md).
+App data lives in `~/.fivehour/`.
+
+## Contributing
+
+PRs are welcome. [CONTRIBUTING.md](CONTRIBUTING.md) covers setup, branch and commit naming, and how pull requests are reviewed and merged.
 
 ## Roadmap
 
