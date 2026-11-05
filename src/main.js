@@ -63,6 +63,8 @@ function refresh() {
   snapshot.endpointError = endpointError;
   snapshot.lastAnchor = lastAnchor;
   snapshot.config = config.publicView(cfg);
+  snapshot.loginItemSupported = process.platform !== 'linux';
+  snapshot.openAtLogin = snapshot.loginItemSupported && app.getLoginItemSettings().openAtLogin;
 
   if (tray) {
     const pct = snapshot.fiveHour && snapshot.fiveHour.active ? snapshot.fiveHour.pct : null;
@@ -172,6 +174,11 @@ ipcMain.handle('set-config', (_e, patch) => {
   refresh();
   return snapshot;
 });
+ipcMain.handle('set-open-at-login', (_e, on) => {
+  if (typeof on === 'boolean' && process.platform !== 'linux') app.setLoginItemSettings({ openAtLogin: on });
+  refresh();
+  return snapshot;
+});
 ipcMain.handle('open-popup', () => togglePopup(widget && !widget.isDestroyed() ? widget.getBounds() : null));
 ipcMain.handle('connect', () => { const r = install.connect(); refresh(); return r; });
 ipcMain.handle('disconnect', () => { const r = install.disconnect(); refresh(); return r; });
@@ -194,6 +201,11 @@ if (gotLock) app.whenReady().then(() => {
   syncWidget();
   refresh();
   pollEndpoint();
+  // First launch: open the panel so new users see the Connect button straight away.
+  if (!config.load().welcomed) {
+    config.update({ welcomed: true });
+    setTimeout(() => togglePopup(), 1200);
+  }
   // Status line file changes -> update immediately.
   try { fs.watch(DATA_DIR, (_ev, f) => { if (f === path.basename(USAGE_FILE)) refresh(); }); } catch {}
   setInterval(refresh, 30 * 1000);

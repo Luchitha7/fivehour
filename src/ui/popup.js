@@ -85,6 +85,8 @@ function render(s) {
   $('warnAt').disabled = $('remindBefore').disabled = !cfg.notifications;
   $('notifications').checked = cfg.notifications;
   $('showWidget').checked = cfg.showWidget;
+  $('loginRow').hidden = !s.loginItemSupported;
+  $('openAtLogin').checked = !!s.openAtLogin;
   $('anchorEnabled').checked = cfg.anchorEnabled;
   if (document.activeElement !== $('anchors')) $('anchors').value = cfg.anchors.join(', ');
   $('pollEndpoint').checked = cfg.pollEndpoint;
@@ -99,6 +101,7 @@ $('warnAt').addEventListener('change', (e) => set({ warnAtPercent: +e.target.val
 $('remindBefore').addEventListener('change', (e) => set({ remindBeforeResetMinutes: +e.target.value }));
 $('notifications').addEventListener('change', (e) => set({ notifications: e.target.checked }));
 $('showWidget').addEventListener('change', (e) => set({ showWidget: e.target.checked }));
+$('openAtLogin').addEventListener('change', (e) => window.timer.setOpenAtLogin(e.target.checked).then(render));
 $('anchorEnabled').addEventListener('change', (e) => set({ anchorEnabled: e.target.checked }));
 $('anchors').addEventListener('change', (e) => set({ anchors: e.target.value.split(/[,\s]+/).filter((a) => /^\d{1,2}:\d{2}$/.test(a)) }));
 $('pollEndpoint').addEventListener('change', (e) => set({ pollEndpoint: e.target.checked }));

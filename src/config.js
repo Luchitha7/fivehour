@@ -13,6 +13,7 @@ const DEFAULTS = {
   showWidget: false,            // optional floating always-on-top widget
   widgetPosition: null,         // {x, y}
   previousStatusLine: null,     // user's status line before we installed ours (internal)
+  welcomed: false,              // first-launch panel already shown (internal)
 };
 
 const TIME = /^([01]?\d|2[0-3]):[0-5]\d$/;
@@ -50,6 +51,7 @@ function normalize(raw) {
   if (p && Number.isFinite(p.x) && Number.isFinite(p.y)) cfg.widgetPosition = { x: Math.round(p.x), y: Math.round(p.y) };
   const sl = raw.previousStatusLine;
   if (sl && typeof sl === 'object' && typeof sl.command === 'string') cfg.previousStatusLine = sl;
+  if (raw.welcomed === true) cfg.welcomed = true;
   return cfg;
 }
 
@@ -78,7 +80,7 @@ function updateFromUser(patch) {
 
 /** Config as sent to the UI (no internal fields). */
 function publicView(cfg) {
-  const { previousStatusLine, widgetPosition, anchorModel, ...rest } = cfg;
+  const { previousStatusLine, widgetPosition, anchorModel, welcomed, ...rest } = cfg;
   return rest;
 }
 
