@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Explain an expired Claude Code login in plain words instead of "HTTP 401", and stop retrying it every few minutes
 - Frosted-glass panel on macOS, with Mac-style switches and buttons
 - Estimated "~% used" when no exact number is available, from local token counts
 - Estimates get more accurate after fivehour sees one exact reading
