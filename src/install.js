@@ -3,6 +3,7 @@ const fs = require('fs');
 const path = require('path');
 const { DATA_DIR, HOOK_FILE, CLAUDE_DIR } = require('./paths');
 const config = require('./config');
+const { findExecutable } = require('./env');
 
 const SETTINGS = path.join(CLAUDE_DIR, 'settings.json');
 const HOOK_SRC = path.join(__dirname, 'hook', 'statusline.js');
@@ -45,6 +46,10 @@ function isConnected() {
 
 function connect() {
   try {
+    // The status line script runs with `node`; without it Connect would look fine but never show numbers.
+    if (!findExecutable('node')) {
+      return { ok: false, error: 'fivehour needs Node.js to read your usage from Claude Code. Install it from nodejs.org (the LTS version), restart fivehour, then click Connect again.' };
+    }
     const s = readSettings();
     fs.mkdirSync(DATA_DIR, { recursive: true });
     // Copy the hook to a stable location so moving/updating the app never breaks Claude Code.
