@@ -1,18 +1,8 @@
 // Window anchoring: at times you choose, send one tiny Claude Code message so a fresh
 // 5-hour window starts on YOUR schedule (e.g. 08:00 -> windows 8-13, 13-18, 18-23).
 // Only fires when no window is active, so it never wastes an existing one.
-const os = require('os');
-const path = require('path');
 const { spawn } = require('child_process');
-
-// GUI apps on macOS don't inherit the shell PATH; add the usual install locations.
-function augmentedPath() {
-  const h = os.homedir();
-  const extra = process.platform === 'win32'
-    ? [path.join(process.env.APPDATA || '', 'npm'), path.join(h, '.local', 'bin')]
-    : ['/opt/homebrew/bin', '/usr/local/bin', path.join(h, '.local', 'bin'), path.join(h, '.claude', 'local'), path.join(h, '.npm-global', 'bin')];
-  return [...extra, process.env.PATH || ''].join(path.delimiter);
-}
+const { augmentedPath, findExecutable } = require('./env');
 
 function dueAnchor(anchors, now, firedToday) {
   const d = new Date(now);
@@ -34,6 +24,9 @@ function sendPing(model = 'haiku') {
     // On Windows `claude` is often a .cmd shim, which Node can only start through a shell.
     // Every argument is therefore a fixed, shell-safe token (no spaces or metacharacters).
     if (!SAFE_ARG.test(model)) return resolve({ ok: false, error: 'invalid model name' });
+    if (!findExecutable('claude')) {
+      return resolve({ ok: false, error: "Claude Code's `claude` command wasn't found. Install Claude Code, then restart fivehour." });
+    }
     const child = spawn('claude', ['-p', 'ok', '--model', model], {
       env: { ...process.env, PATH: augmentedPath() },
       shell: process.platform === 'win32',
