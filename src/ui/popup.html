@@ -32,6 +32,7 @@
   .bar > div { height: 100%; border-radius: 99px; }
   .row { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
   button { font: inherit; border: 1px solid var(--line); background: var(--card); color: var(--text); border-radius: 8px; padding: 5px 10px; cursor: pointer; }
+  button { white-space: nowrap; flex: none; }
   button.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
   button:disabled { opacity: .5; cursor: default; }
   input[type=text] { font: inherit; width: 100%; padding: 5px 8px; border-radius: 8px; border: 1px solid var(--line); background: var(--bg); color: var(--text); }
@@ -42,6 +43,12 @@
   .setting { margin-top: 12px; }
   .hint { font-size: 11px; color: var(--muted); margin-top: 3px; }
   .warn { color: var(--warn); }
+  .ok { color: var(--ok); }
+  .step + .step { margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--line); }
+  .step .row { margin-top: 6px; }
+  /* Only show a focus ring for keyboard use, never after clicks or when the panel reopens. */
+  :focus { outline: none; }
+  :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 6px; }
   footer { display: flex; justify-content: space-between; align-items: center; font-size: 11px; color: var(--muted); padding: 2px 2px 0; }
   footer button { padding: 2px 8px; font-size: 11px; }
 </style>
@@ -53,10 +60,19 @@
   </header>
 
   <div class="card" id="setup" hidden>
-    <div style="font-weight:600;margin-bottom:4px">Connect Claude Code</div>
-    <div class="muted" style="margin-bottom:8px">Adds a status line so Claude Code reports your exact 5-hour % and reset time after each reply. Any status line you already have keeps working.</div>
-    <button class="primary" id="connect">Connect</button>
-    <div class="hint warn" id="setupError"></div>
+    <div style="font-weight:600">Get your exact % used</div>
+    <div class="step">
+      <div class="muted">Use Claude Code in the <b>Claude desktop app</b> or <b>claude.ai</b>?</div>
+      <div class="row"><span class="hint">Reads usage with your Claude Code login. On a Mac, click <b>Always Allow</b> if asked.</span>
+        <button class="primary" id="liveOn">Turn on live data</button></div>
+      <div class="hint warn" id="liveError"></div>
+    </div>
+    <div class="step">
+      <div class="muted">Use Claude Code in a <b>terminal</b>?</div>
+      <div class="row"><span class="hint" id="connectHint">Updates after each reply in the terminal.</span>
+        <button id="connect">Connect</button></div>
+      <div class="hint warn" id="setupError"></div>
+    </div>
   </div>
 
   <div class="card">
@@ -68,7 +84,7 @@
           <circle id="arc" cx="52" cy="52" r="44" fill="none" stroke="var(--ok)" stroke-width="10" stroke-linecap="round" stroke-dasharray="0 999"/>
           <line id="warnTick" x1="52" y1="2" x2="52" y2="18" stroke="var(--text)" stroke-width="2" opacity=".55"/>
         </svg>
-        <div class="pct"><div><span id="pct">–</span><small>used</small></div></div>
+        <div class="pct"><div><span id="pct">–</span><small id="pctLabel">used</small></div></div>
       </div>
       <div>
         <div class="muted" id="leftLabel">Resets in</div>
@@ -131,8 +147,8 @@
       </div>
 
       <div class="setting">
-        <div class="row"><span>Live polling <span class="muted">(experimental)</span></span><input type="checkbox" id="pollEndpoint"></div>
-        <div class="hint">Keeps numbers fresh when you only use claude.ai, via the undocumented endpoint behind <code>/usage</code>. Uses your Claude Code login. May break without notice.</div>
+        <div class="row"><span>Live data</span><input type="checkbox" id="pollEndpoint"></div>
+        <div class="hint">Checks your usage every few minutes using your Claude Code login. Needed for the Claude desktop app and claude.ai. Uses an unofficial endpoint, so it could change.</div>
         <div class="hint warn" id="endpointError"></div>
       </div>
 

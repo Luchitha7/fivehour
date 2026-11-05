@@ -34,8 +34,16 @@ function render(s) {
   const cfg = s.config, fh = s.fiveHour;
   const names = { statusline: 'Claude Code', endpoint: 'live', 'local-logs': 'estimate', none: 'no data' };
   $('source').textContent = names[s.source] || s.source;
-  $('setup').hidden = s.connected;
+  const exact = s.source === 'statusline' || s.source === 'endpoint';
+  $('setup').hidden = exact;
   $('disconnectRow').hidden = !s.connected;
+  $('connect').hidden = s.connected;
+  $('connectHint').innerHTML = s.connected
+    ? '<span class="ok">✓ Connected.</span> Send a message in the terminal to load it.'
+    : 'Updates after each reply in the terminal.';
+  $('liveOn').disabled = cfg.pollEndpoint && !s.endpointError;
+  $('liveOn').textContent = cfg.pollEndpoint && !s.endpointError ? 'Loading…' : 'Turn on live data';
+  $('liveError').textContent = cfg.pollEndpoint && s.endpointError ? `Couldn't load: ${s.endpointError}` : '';
 
   // tick on the ring at the "notify at" %
   const ang = cfg.warnAtPercent / 100 * 2 * Math.PI;
@@ -45,8 +53,16 @@ function render(s) {
   t.style.display = cfg.warnAtPercent ? '' : 'none';
 
   const pct = fh && fh.active ? fh.pct : fh ? 0 : null;
-  $('pct').textContent = pct == null ? '–' : Math.round(pct) + '%';
+  // No exact % yet: show this window's tokens from local logs instead of a dash.
+  if (pct == null && s.local) {
+    $('pct').textContent = fmtTokens(s.local.tokens).replace(/\.\d(?=[kM])/, '');
+    $('pctLabel').textContent = 'tokens';
+  } else {
+    $('pct').textContent = pct == null ? '–' : Math.round(pct) + '%';
+    $('pctLabel').textContent = 'used';
+  }
   $('arc').setAttribute('stroke-dasharray', `${((pct || 0) / 100) * C} ${C}`);
+  $('arc').style.visibility = pct ? 'visible' : 'hidden'; // a zero-length round cap would draw a dot
   $('arc').setAttribute('stroke', color(pct, cfg.warnAtPercent));
 
   if (!fh) {
@@ -62,7 +78,7 @@ function render(s) {
   } else {
     $('leftLabel').textContent = 'Resets in';
     $('at').textContent = 'at ' + time(fh.resetsAt);
-    $('fhNote').textContent = fh.estimated ? 'Estimated from local Claude Code logs. Connect Claude Code for exact numbers.' : '';
+    $('fhNote').textContent = fh.estimated ? 'Reset time estimated from your Claude Code activity. Turn on live data above for the exact % and time.' : '';
   }
 
   if (s.sevenDay) {
@@ -74,7 +90,7 @@ function render(s) {
     $('weekReset').textContent = s.sevenDay.resetsAt ? 'Resets ' + day(s.sevenDay.resetsAt) : '';
   } else $('weekCard').hidden = true;
 
-  if (s.local) {
+  if (s.local && pct != null) { // when % is unknown the ring already shows the tokens
     $('localCard').hidden = false;
     $('localTokens').textContent = fmtTokens(s.local.tokens) + ' tokens';
     $('localMsgs').textContent = `${s.local.messages} replies · +${fmtTokens(s.local.cacheRead)} cached`;
@@ -92,7 +108,7 @@ function render(s) {
   $('pollEndpoint').checked = cfg.pollEndpoint;
   $('endpointError').textContent = cfg.pollEndpoint && s.endpointError ? 'Polling failed: ' + s.endpointError : '';
   $('anchorStatus').textContent = s.lastAnchor ? `${time(s.lastAnchor.at)}: ${s.lastAnchor.result}` : '';
-  $('updated').textContent = 'Updated ' + ago(s.updatedAt);
+  $('updated').textContent = exact ? 'Updated ' + ago(s.updatedAt) : 'Exact % not loaded yet';
   tick();
 }
 
@@ -111,9 +127,13 @@ async function runInstall(action) {
   render(await window.timer.getSnapshot());
 }
 $('connect').addEventListener('click', () => runInstall('connect'));
+$('liveOn').addEventListener('click', () => set({ pollEndpoint: true }));
 $('disconnect').addEventListener('click', () => runInstall('disconnect'));
 $('anchorNow').addEventListener('click', async (e) => { e.target.disabled = true; e.target.textContent = 'Starting…'; await window.timer.anchorNow(); e.target.disabled = false; e.target.textContent = 'Start window now'; render(await window.timer.getSnapshot()); });
 $('quit').addEventListener('click', () => window.timer.quit());
+
+// Drop focus when the panel hides so nothing is highlighted when it reopens.
+window.addEventListener('blur', () => { if (document.activeElement) document.activeElement.blur(); });
 
 window.timer.onSnapshot(render);
 window.timer.getSnapshot().then(render);
