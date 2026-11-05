@@ -77,3 +77,10 @@ test('connect refuses to overwrite an unreadable settings file', () => {
   assert.match(r.error, /isn't valid JSON/);
   assert.equal(fs.readFileSync(settingsFile, 'utf8'), '{ broken');
 });
+
+test('update settings: users can turn checks off, but not fake the notified version', () => {
+  assert.deepEqual(sanitizeUserPatch({ checkUpdates: false, notifiedUpdate: '9.9.9' }), { checkUpdates: false });
+  assert.equal(normalize({ notifiedUpdate: '1.2.3; rm -rf' }).notifiedUpdate, null);
+  assert.equal(normalize({ notifiedUpdate: '0.2.0' }).notifiedUpdate, '0.2.0');
+  assert.equal('notifiedUpdate' in publicView({ ...DEFAULTS, notifiedUpdate: '0.2.0' }), false);
+});

@@ -59,6 +59,11 @@
     <span class="badge" id="source">…</span>
   </header>
 
+  <div class="card row" id="updateCard" hidden>
+    <span><b id="updateText">Update available</b><br><span class="hint">Your settings are kept.</span></span>
+    <button class="primary" id="updateBtn">Download</button>
+  </div>
+
   <div class="card" id="setup" hidden>
     <div style="font-weight:600">Get your exact % used</div>
     <div class="step">
@@ -137,6 +142,11 @@
 
       <div class="setting row">
         <span>Floating widget</span><input type="checkbox" id="showWidget">
+      </div>
+
+      <div class="setting">
+        <div class="row"><span>Check for updates</span><input type="checkbox" id="checkUpdates"></div>
+        <div class="hint">Looks at the fivehour GitHub releases once a day. Nothing about you is sent.</div>
       </div>
 
       <div class="setting">

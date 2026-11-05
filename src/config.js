@@ -11,9 +11,11 @@ const DEFAULTS = {
   anchorModel: 'haiku',
   pollEndpoint: false,          // opt-in: poll the (undocumented) usage endpoint
   showWidget: false,            // optional floating always-on-top widget
+  checkUpdates: true,           // look for a newer GitHub release once a day
   widgetPosition: null,         // {x, y}
   previousStatusLine: null,     // user's status line before we installed ours (internal)
   welcomed: false,              // first-launch panel already shown (internal)
+  notifiedUpdate: null,         // version we already sent an update notification for (internal)
 };
 
 const TIME = /^([01]?\d|2[0-3]):[0-5]\d$/;
@@ -29,6 +31,7 @@ const USER_KEYS = {
   anchorEnabled: (v) => typeof v === 'boolean',
   pollEndpoint: (v) => typeof v === 'boolean',
   showWidget: (v) => typeof v === 'boolean',
+  checkUpdates: (v) => typeof v === 'boolean',
 };
 
 /** Keep only allowed, valid keys from an untrusted patch (e.g. from the renderer). */
@@ -52,6 +55,7 @@ function normalize(raw) {
   const sl = raw.previousStatusLine;
   if (sl && typeof sl === 'object' && typeof sl.command === 'string') cfg.previousStatusLine = sl;
   if (raw.welcomed === true) cfg.welcomed = true;
+  if (typeof raw.notifiedUpdate === 'string' && /^\d+\.\d+\.\d+$/.test(raw.notifiedUpdate)) cfg.notifiedUpdate = raw.notifiedUpdate;
   return cfg;
 }
 
@@ -80,7 +84,7 @@ function updateFromUser(patch) {
 
 /** Config as sent to the UI (no internal fields). */
 function publicView(cfg) {
-  const { previousStatusLine, widgetPosition, anchorModel, welcomed, ...rest } = cfg;
+  const { previousStatusLine, widgetPosition, anchorModel, welcomed, notifiedUpdate, ...rest } = cfg;
   return rest;
 }
 

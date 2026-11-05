@@ -1,4 +1,4 @@
-const { app, Tray, BrowserWindow, Menu, nativeImage, Notification, ipcMain, screen } = require('electron');
+const { app, Tray, BrowserWindow, Menu, nativeImage, Notification, ipcMain, screen, shell } = require('electron');
 const fs = require('fs');
 const path = require('path');
 const config = require('./config');
@@ -7,6 +7,7 @@ const usage = require('./usage');
 const alerts = require('./alerts');
 const anchor = require('./anchor');
 const endpoint = require('./sources/endpoint');
+const update = require('./update');
 const { ringPng } = require('./icon');
 const { DATA_DIR, USAGE_FILE } = require('./paths');
 
@@ -19,6 +20,7 @@ let endpointError = null;
 let anchorFired = [];
 let lastAnchor = null;
 let lastIconKey = '';
+let updateInfo = null; // { version, url } when a newer release exists
 
 const gotLock = app.requestSingleInstanceLock();
 if (!gotLock) app.quit();
@@ -63,6 +65,8 @@ function refresh() {
   snapshot.endpointError = endpointError;
   snapshot.lastAnchor = lastAnchor;
   snapshot.config = config.publicView(cfg);
+  snapshot.appVersion = app.getVersion();
+  snapshot.update = updateInfo ? { version: updateInfo.version } : null;
   snapshot.loginItemSupported = process.platform !== 'linux';
   snapshot.openAtLogin = snapshot.loginItemSupported && app.getLoginItemSettings().openAtLogin;
 
@@ -111,6 +115,27 @@ function syncWidget() {
   widget.once('ready-to-show', () => widget.showInactive());
   widget.on('moved', () => { const [x, y] = widget.getPosition(); config.update({ widgetPosition: { x, y } }); });
   widget.on('closed', () => { widget = null; });
+}
+
+function openUpdatePage() {
+  // Only ever open this repo's release pages (validated in update.parseRelease).
+  if (updateInfo && updateInfo.url.startsWith(update.RELEASES_PREFIX)) shell.openExternal(updateInfo.url);
+}
+
+async function checkUpdates() {
+  if (!config.load().checkUpdates) { updateInfo = null; refresh(); return; }
+  try {
+    updateInfo = await update.checkForUpdate(app.getVersion());
+  } catch {
+    return; // offline or rate-limited: try again next time
+  }
+  if (updateInfo && config.load().notifiedUpdate !== updateInfo.version && Notification.isSupported()) {
+    config.update({ notifiedUpdate: updateInfo.version });
+    const n = new Notification({ title: `fivehour ${updateInfo.version} is available`, body: 'Click to download the new version.' });
+    n.on('click', openUpdatePage);
+    n.show();
+  }
+  refresh();
 }
 
 async function pollEndpoint() {
@@ -171,6 +196,7 @@ ipcMain.handle('set-config', (_e, patch) => {
   config.updateFromUser(clean);
   if ('pollEndpoint' in clean) pollEndpoint();
   if ('showWidget' in clean) syncWidget();
+  if ('checkUpdates' in clean) checkUpdates();
   refresh();
   return snapshot;
 });
@@ -179,6 +205,7 @@ ipcMain.handle('set-open-at-login', (_e, on) => {
   refresh();
   return snapshot;
 });
+ipcMain.handle('open-update', () => openUpdatePage());
 ipcMain.handle('open-popup', () => togglePopup(widget && !widget.isDestroyed() ? widget.getBounds() : null));
 ipcMain.handle('connect', () => { const r = install.connect(); refresh(); return r; });
 ipcMain.handle('disconnect', () => { const r = install.disconnect(); refresh(); return r; });
@@ -211,6 +238,8 @@ if (gotLock) app.whenReady().then(() => {
   setInterval(refresh, 30 * 1000);
   setInterval(pollEndpoint, 3 * 60 * 1000);
   setInterval(checkAnchors, 30 * 1000);
+  setTimeout(checkUpdates, 15 * 1000);
+  setInterval(checkUpdates, 24 * 60 * 60 * 1000);
 });
 
 app.on('window-all-closed', (e) => e.preventDefault());

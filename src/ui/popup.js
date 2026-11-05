@@ -35,6 +35,9 @@ function render(s) {
   const names = { statusline: 'Claude Code', endpoint: 'live', 'local-logs': 'estimate', none: 'no data' };
   $('source').textContent = names[s.source] || s.source;
   const exact = s.source === 'statusline' || s.source === 'endpoint';
+  $('updateCard').hidden = !s.update;
+  if (s.update) $('updateText').textContent = `fivehour ${s.update.version} is available`;
+  $('checkUpdates').checked = cfg.checkUpdates;
   $('setup').hidden = exact;
   $('disconnectRow').hidden = !s.connected;
   $('connect').hidden = s.connected;
@@ -108,7 +111,7 @@ function render(s) {
   $('pollEndpoint').checked = cfg.pollEndpoint;
   $('endpointError').textContent = cfg.pollEndpoint && s.endpointError ? 'Polling failed: ' + s.endpointError : '';
   $('anchorStatus').textContent = s.lastAnchor ? `${time(s.lastAnchor.at)}: ${s.lastAnchor.result}` : '';
-  $('updated').textContent = exact ? 'Updated ' + ago(s.updatedAt) : 'Exact % not loaded yet';
+  $('updated').textContent = (exact ? 'Updated ' + ago(s.updatedAt) : 'Exact % not loaded yet') + (s.appVersion ? ` · v${s.appVersion}` : '');
   tick();
 }
 
@@ -128,6 +131,8 @@ async function runInstall(action) {
 }
 $('connect').addEventListener('click', () => runInstall('connect'));
 $('liveOn').addEventListener('click', () => set({ pollEndpoint: true }));
+$('checkUpdates').addEventListener('change', (e) => set({ checkUpdates: e.target.checked }));
+$('updateBtn').addEventListener('click', () => window.timer.openUpdate());
 $('disconnect').addEventListener('click', () => runInstall('disconnect'));
 $('anchorNow').addEventListener('click', async (e) => { e.target.disabled = true; e.target.textContent = 'Starting…'; await window.timer.anchorNow(); e.target.disabled = false; e.target.textContent = 'Start window now'; render(await window.timer.getSnapshot()); });
 $('quit').addEventListener('click', () => window.timer.quit());
