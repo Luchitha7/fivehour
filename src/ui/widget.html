@@ -1,0 +1,35 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src 'self'; connect-src 'none'; style-src 'self' 'unsafe-inline'; script-src 'self'">
+<title>fivehour widget</title>
+<style>
+  :root { --bg: rgba(255,255,255,.92); --text: #1d1d1f; --muted: #6e6e73; --track: #e4e2dc; --line: rgba(0,0,0,.08); }
+  @media (prefers-color-scheme: dark) { :root { --bg: rgba(36,36,38,.92); --text: #f2f2f2; --muted: #a0a0a6; --track: #48484c; --line: rgba(255,255,255,.1); } }
+  html, body { margin: 0; height: 100%; background: transparent; overflow: hidden; }
+  body { font: 12px/1.2 -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif; color: var(--text); user-select: none; }
+  .pill {
+    -webkit-app-region: drag; cursor: grab;
+    position: absolute; inset: 2px; display: flex; align-items: center; gap: 9px; padding: 0 12px 0 8px;
+    background: var(--bg); border: 1px solid var(--line); border-radius: 999px; box-shadow: 0 2px 10px rgba(0,0,0,.18);
+  }
+  svg { flex: none; transform: rotate(-90deg); }
+  .pct { font-weight: 650; font-size: 14px; font-variant-numeric: tabular-nums; }
+  .left { color: var(--muted); font-variant-numeric: tabular-nums; }
+  .open { -webkit-app-region: no-drag; margin-left: auto; border: 0; background: none; color: var(--muted); font-size: 14px; cursor: pointer; padding: 2px 0 2px 4px; }
+</style>
+</head>
+<body>
+  <div class="pill" title="Drag to move · ⋯ for details">
+    <svg width="26" height="26" viewBox="0 0 26 26">
+      <circle cx="13" cy="13" r="10" fill="none" stroke="var(--track)" stroke-width="4"/>
+      <circle id="arc" cx="13" cy="13" r="10" fill="none" stroke="#34c778" stroke-width="4" stroke-linecap="round" stroke-dasharray="0 99"/>
+    </svg>
+    <span class="pct" id="pct">–</span>
+    <span class="left" id="left">loading…</span>
+    <button class="open" id="open" title="Details and settings">⋯</button>
+  </div>
+<script src="widget.js"></script>
+</body>
+</html>
