@@ -48,7 +48,23 @@ Build an installer (`.dmg`, `.exe` or AppImage) for the OS you're on:
 npm run dist
 ```
 
-> **macOS tip:** if you don't see the icon, your menu bar may be full and the notch is hiding it. Close a few menu bar apps, or turn on **Settings → Floating widget**.
+### Can't see the icon?
+
+- **Windows:** new tray icons start hidden. Click the **^** arrow next to the clock, then drag the fivehour ring onto the taskbar so it always shows. (Or go to *Settings → Personalization → Taskbar → Other system tray icons* and turn fivehour on.)
+- **macOS:** if your menu bar is full, the notch can hide the icon. Close a few menu bar apps, or turn on **Settings → Floating widget** in fivehour.
+
+## Windows notes
+
+fivehour works on Windows 10 and 11. A few things that are different from macOS:
+
+| | |
+| --- | --- |
+| **Node.js is required** | The status line script runs with Node.js. If you installed Claude Code with its native Windows installer, you may not have Node yet. Install the **LTS** version from [nodejs.org](https://nodejs.org), then restart fivehour. If Node is missing, **Connect** tells you instead of failing silently. |
+| **Where files live** | `~/.claude` means `%USERPROFILE%\.claude` (for example `C:\Users\you\.claude`). fivehour's own data is in `%USERPROFILE%\.fivehour`. |
+| **Run the commands in** | PowerShell or Windows Terminal. The Quick start commands work as written. |
+| **Building the `.exe`** | `npm run dist` builds the installer for the OS you're on, so run it on a Windows PC to get the `.exe` (it ends up in `dist\`). |
+| **Window anchoring** | Needs the `claude` command to work in a new terminal. If it doesn't, anchoring shows "`claude` command wasn't found". |
+| **Notifications** | Appear in the Windows notification center. If you don't see any, check that *Focus assist / Do not disturb* is off. |
 
 ## What "Connect" does
 
@@ -95,6 +111,7 @@ src/config.js               settings with validation
 src/usage.js                merges sources into one snapshot
 src/alerts.js               notification rules
 src/anchor.js               window anchoring
+src/env.js                  find node / claude from a GUI app
 src/icon.js                 ring tray icon -> PNG, no native deps
 src/install.js              connect/disconnect the Claude Code status line
 src/hook/statusline.js      status line script (copied to ~/.fivehour/)
