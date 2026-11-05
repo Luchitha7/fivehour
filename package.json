@@ -30,7 +30,8 @@
     "start": "electron .",
     "test": "node --test test/*.test.js",
     "check": "node --check src/main.js && npm test",
-    "dist": "electron-builder"
+    "dist": "electron-builder --publish never",
+    "icon": "node scripts/make-icon.js"
   },
   "devDependencies": {
     "electron": "45.2.2",
@@ -39,23 +40,68 @@
   "build": {
     "appId": "io.github.luchitha7.fivehour",
     "productName": "fivehour",
+    "copyright": "Copyright \u00a9 2026 Luchitha Jayawardena",
+    "directories": {
+      "buildResources": "build",
+      "output": "dist"
+    },
     "files": [
       "src/**/*",
       "package.json"
     ],
+    "publish": null,
     "mac": {
-      "target": "dmg",
+      "target": [
+        {
+          "target": "dmg",
+          "arch": [
+            "arm64",
+            "x64"
+          ]
+        }
+      ],
       "category": "public.app-category.productivity",
+      "artifactName": "fivehour-${version}-mac-${arch}.${ext}",
+      "identity": "-",
+      "hardenedRuntime": false,
+      "notarize": false,
       "extendInfo": {
         "LSUIElement": true
       }
     },
+    "dmg": {
+      "title": "fivehour ${version}"
+    },
     "win": {
-      "target": "nsis"
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64",
+            "arm64"
+          ]
+        }
+      ],
+      "artifactName": "fivehour-${version}-windows-${arch}-setup.${ext}"
+    },
+    "nsis": {
+      "oneClick": true,
+      "perMachine": false,
+      "runAfterFinish": true,
+      "createDesktopShortcut": false,
+      "createStartMenuShortcut": true
     },
     "linux": {
-      "target": "AppImage",
-      "category": "Utility"
+      "target": [
+        {
+          "target": "AppImage",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "category": "Utility",
+      "artifactName": "fivehour-${version}-linux-${arch}.${ext}"
     }
   },
   "allowScripts": {
