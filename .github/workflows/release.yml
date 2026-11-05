@@ -75,6 +75,15 @@ jobs:
         run: |
           ls -la out
           (cd out && sha256sum * > SHA256SUMS.txt)
+          # "What's new" = this version's section of CHANGELOG.md, then the download guide.
+          ver="${GITHUB_REF_NAME#v}"
+          {
+            echo "## What's new"
+            echo
+            awk -v v="$ver" '/^## /{p = index($0, "## " v " ") == 1; next} p' CHANGELOG.md
+            cat .github/release-notes.md
+          } > notes.md
+          cat notes.md
           gh release create "$GITHUB_REF_NAME" out/* \
             --title "fivehour $GITHUB_REF_NAME" \
-            --notes-file .github/release-notes.md
+            --notes-file notes.md

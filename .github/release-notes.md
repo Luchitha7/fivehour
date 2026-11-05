@@ -18,6 +18,12 @@ fivehour isn't signed with a paid Apple or Microsoft certificate yet, so your co
 - **Windows:** if SmartScreen says "Windows protected your PC", click **More info → Run anyway**.
 - **Linux:** make the AppImage executable (`chmod +x fivehour-*.AppImage`) and run it.
 
-Then click the ring in your menu bar or tray, click **Connect**, and send any message in Claude Code. You also need [Node.js](https://nodejs.org) (LTS) installed for Connect to work.
+Then click the ring in your menu bar or tray:
+
+- **Claude desktop app or claude.ai:** click **Turn on live data**. It reads your usage with the login of terminal Claude Code. If fivehour says no login was found or it has expired:
+  1. [Install Claude Code](https://code.claude.com/docs/en/setup) if you don't have it (check with `claude --version` in a terminal).
+  2. Run `claude auth login` and sign in with your Claude account.
+  3. Click **Try again** in fivehour.
+- **Claude Code in a terminal:** click **Connect** and send any message. Connect needs [Node.js](https://nodejs.org) (LTS).
 
 `SHA256SUMS.txt` lists the checksums of every file, if you want to verify your download.

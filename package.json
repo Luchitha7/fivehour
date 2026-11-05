@@ -1,6 +1,6 @@
 {
   "name": "fivehour",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "private": true,
   "description": "Menu bar / system tray timer for your Claude 5-hour usage limit: % used, reset countdown, weekly limit and notifications. Unofficial.",
   "keywords": [
@@ -40,7 +40,7 @@
   "build": {
     "appId": "io.github.luchitha7.fivehour",
     "productName": "fivehour",
-    "copyright": "Copyright \u00a9 2026 Luchitha Jayawardena",
+    "copyright": "Copyright © 2026 Luchitha Jayawardena",
     "directories": {
       "buildResources": "build",
       "output": "dist"
