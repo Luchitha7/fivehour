@@ -24,3 +24,17 @@ test('release parsing only trusts this repo’s release pages', () => {
   assert.equal(parseRelease({ ...good, tag_name: 'latest' }), null);
   assert.equal(parseRelease(null), null);
 });
+
+test('live data backs off, hardest on 429', () => {
+  const { nextDelay, retryAfterMs } = require('../src/sources/endpoint');
+  const MIN = 60e3;
+  assert.equal(nextDelay(null, 0), 5 * MIN);
+  assert.equal(nextDelay({ status: 500 }, 1), 5 * MIN);
+  assert.equal(nextDelay({ status: 500 }, 3), 20 * MIN);
+  assert.equal(nextDelay({ status: 500 }, 20), 60 * MIN, 'capped at an hour');
+  assert.equal(nextDelay({ status: 429 }, 1), 10 * MIN, 'at least 10 min after a 429');
+  assert.equal(nextDelay({ status: 429, retryAfter: 30 * MIN }, 1), 30 * MIN, 'honours Retry-After');
+  assert.equal(retryAfterMs('120'), 120e3);
+  assert.equal(retryAfterMs(new Date(Date.now() + 60e3).toUTCString()) > 50e3, true);
+  assert.equal(retryAfterMs('soon'), null);
+});

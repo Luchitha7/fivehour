@@ -36,13 +36,36 @@ function getJson(url, token) {
         if (body.length > 256 * 1024) req.destroy(new Error('response too large'));
       });
       res.on('end', () => {
-        if (res.statusCode !== 200) return reject(new Error(`HTTP ${res.statusCode}`));
+        if (res.statusCode !== 200) {
+          const err = new Error(res.statusCode === 429 ? 'rate limited' : `HTTP ${res.statusCode}`);
+          err.status = res.statusCode;
+          err.retryAfter = retryAfterMs(res.headers['retry-after']);
+          return reject(err);
+        }
         try { resolve(JSON.parse(body)); } catch (e) { reject(e); }
       });
     });
     req.on('timeout', () => req.destroy(new Error('timeout')));
     req.on('error', reject);
   });
+}
+
+/** Retry-After header (seconds or an HTTP date) -> ms from now, or null. */
+function retryAfterMs(h, now = Date.now()) {
+  if (h == null || h === '') return null;
+  const secs = Number(h);
+  if (Number.isFinite(secs)) return secs >= 0 ? secs * 1000 : null;
+  const at = Date.parse(h);
+  return Number.isFinite(at) ? Math.max(0, at - now) : null;
+}
+
+/** How long to wait before the next poll. Backs off on errors, hardest on 429. */
+function nextDelay(err, failures) {
+  const BASE = 5 * 60e3, MAX = 60 * 60e3;
+  if (!err) return BASE;
+  const backoff = Math.min(MAX, BASE * 2 ** Math.max(0, failures - 1));
+  if (err.status === 429) return Math.min(MAX, Math.max(backoff, err.retryAfter || 0, 10 * 60e3));
+  return backoff;
 }
 
 // Response shape: { five_hour: { utilization: 0-100, resets_at: ISO }, seven_day: {...} }
@@ -60,4 +83,4 @@ async function fetchUsage() {
   return { source: 'endpoint', updated_at: Math.floor(Date.now() / 1000), five_hour: normalize(d.five_hour), seven_day: normalize(d.seven_day) };
 }
 
-module.exports = { fetchUsage, normalize };
+module.exports = { fetchUsage, normalize, retryAfterMs, nextDelay };

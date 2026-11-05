@@ -9,7 +9,7 @@ const anchor = require('./anchor');
 const endpoint = require('./sources/endpoint');
 const update = require('./update');
 const { ringPng } = require('./icon');
-const { DATA_DIR, USAGE_FILE } = require('./paths');
+const { DATA_DIR, USAGE_FILE, LIVE_FILE } = require('./paths');
 
 let tray = null;
 let popup = null;
@@ -17,6 +17,10 @@ let snapshot = null;
 let alertMem = {};
 let endpointData = null;
 let endpointError = null;
+let endpointFailures = 0;
+let endpointTimer = null;
+let endpointNextAt = 0; // don't poll before this (rate-limit backoff)
+let endpointLimited = false; // last attempt got a 429
 let anchorFired = [];
 let lastAnchor = null;
 let lastIconKey = '';
@@ -55,14 +59,20 @@ function trayText(s) {
   if (!fh) return 'no data';
   if (!fh.active) return 'ready';
   const left = usage.fmtDuration(fh.resetsAt - Date.now()).replace(' ', '');
-  return fh.pct == null ? `~${left}` : `${Math.round(fh.pct)}% · ${left}`;
+  if (fh.pct == null) return `~${left}`;
+  return `${fh.pctEstimated ? '~' : ''}${Math.round(fh.pct)}% · ${fh.estimated ? '~' : ''}${left}`;
 }
 
 function refresh() {
   const cfg = config.load();
-  snapshot = usage.collect({ endpoint: endpointData });
+  snapshot = usage.collect({ endpoint: endpointData, calibration: cfg.tokensPer100 });
+  // Learn tokens-per-100% whenever an exact reading lines up with the local logs,
+  // so later estimates are closer. Only saved when it moves by more than 5%.
+  const cal = usage.calibrate(snapshot);
+  if (cal && (!cfg.tokensPer100 || Math.abs(cal - cfg.tokensPer100) / cfg.tokensPer100 > 0.05)) config.update({ tokensPer100: cal });
   snapshot.connected = install.isConnected();
   snapshot.endpointError = endpointError;
+  snapshot.endpointWaiting = !!endpointError && endpointLimited;
   snapshot.lastAnchor = lastAnchor;
   snapshot.config = config.publicView(cfg);
   snapshot.appVersion = app.getVersion();
@@ -138,10 +148,50 @@ async function checkUpdates() {
   refresh();
 }
 
-async function pollEndpoint() {
-  if (!config.load().pollEndpoint) { endpointData = null; endpointError = null; return; }
-  try { endpointData = await endpoint.fetchUsage(); endpointError = null; }
-  catch (e) { endpointError = e.message; }
+function loadLiveCache() {
+  try {
+    const d = JSON.parse(fs.readFileSync(LIVE_FILE, 'utf8'));
+    if (d && d.source === 'endpoint' && Number.isFinite(d.updated_at)) endpointData = d;
+  } catch {}
+}
+
+function saveLiveCache(d) {
+  try {
+    const tmp = `${LIVE_FILE}.${process.pid}.tmp`;
+    fs.writeFileSync(tmp, JSON.stringify(d));
+    fs.renameSync(tmp, LIVE_FILE);
+  } catch {}
+}
+
+// Live data: poll every 5 min, back off on errors (at least 10 min after a 429), and keep
+// showing the last good reading meanwhile. `force` is for the user turning it on by hand.
+async function pollEndpoint({ force = false } = {}) {
+  clearTimeout(endpointTimer);
+  if (!config.load().pollEndpoint) { endpointData = null; endpointError = null; endpointFailures = 0; refresh(); return; }
+  const wait = endpointNextAt - Date.now();
+  // Wait out the backoff. A manual "Try again" may skip it, except after a 429.
+  if (wait > 0 && (!force || endpointLimited)) { endpointTimer = setTimeout(pollEndpoint, wait); return; }
+  let err = null;
+  try {
+    endpointData = await endpoint.fetchUsage();
+    saveLiveCache(endpointData);
+    endpointError = null;
+    endpointFailures = 0;
+    endpointLimited = false;
+  } catch (e) {
+    endpointLimited = e.status === 429;
+    err = e;
+    endpointFailures += 1;
+  }
+  const delay = endpoint.nextDelay(err, endpointFailures);
+  endpointNextAt = Date.now() + delay;
+  if (err) {
+    const at = new Date(endpointNextAt).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+    endpointError = err.status === 429
+      ? `Anthropic is limiting requests right now. Trying again at ${at}.`
+      : `${err.message}. Trying again at ${at}.`;
+  }
+  endpointTimer = setTimeout(pollEndpoint, delay);
   refresh();
 }
 
@@ -194,7 +244,7 @@ ipcMain.handle('get-snapshot', () => snapshot);
 ipcMain.handle('set-config', (_e, patch) => {
   const clean = config.sanitizeUserPatch(patch); // never trust the renderer
   config.updateFromUser(clean);
-  if ('pollEndpoint' in clean) pollEndpoint();
+  if ('pollEndpoint' in clean) pollEndpoint({ force: clean.pollEndpoint });
   if ('showWidget' in clean) syncWidget();
   if ('checkUpdates' in clean) checkUpdates();
   refresh();
@@ -226,6 +276,7 @@ if (gotLock) app.whenReady().then(() => {
   ])));
 
   syncWidget();
+  if (config.load().pollEndpoint) loadLiveCache();
   refresh();
   pollEndpoint();
   // First launch: open the panel so new users see the Connect button straight away.
@@ -236,7 +287,6 @@ if (gotLock) app.whenReady().then(() => {
   // Status line file changes -> update immediately.
   try { fs.watch(DATA_DIR, (_ev, f) => { if (f === path.basename(USAGE_FILE)) refresh(); }); } catch {}
   setInterval(refresh, 30 * 1000);
-  setInterval(pollEndpoint, 3 * 60 * 1000);
   setInterval(checkAnchors, 30 * 1000);
   setTimeout(checkUpdates, 15 * 1000);
   setInterval(checkUpdates, 24 * 60 * 60 * 1000);
