@@ -6,7 +6,7 @@
 
 **Your Claude 5-hour usage limit, always in view.**
 
-% used, a reset countdown and timely alerts, right in your menu bar or system tray.
+See how much you've used, when it resets, and get alerts before you run out, right in your menu bar or system tray.
 
 [![Latest release](https://img.shields.io/github/v/release/Luchitha7/fivehour?label=release&color=c96442)](https://github.com/Luchitha7/fivehour/releases/latest)
 [![Downloads](https://img.shields.io/github/downloads/Luchitha7/fivehour/total?color=34c778)](https://github.com/Luchitha7/fivehour/releases)
