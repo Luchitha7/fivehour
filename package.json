@@ -1,0 +1,64 @@
+{
+  "name": "fivehour",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Menu bar / system tray timer for your Claude 5-hour usage limit: % used, reset countdown, weekly limit and notifications. Unofficial.",
+  "keywords": [
+    "claude",
+    "claude-code",
+    "usage",
+    "rate-limit",
+    "menu-bar",
+    "tray",
+    "electron"
+  ],
+  "homepage": "https://github.com/Luchitha7/fivehour#readme",
+  "bugs": {
+    "url": "https://github.com/Luchitha7/fivehour/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Luchitha7/fivehour.git"
+  },
+  "author": "Luchitha Jayawardena (https://github.com/Luchitha7)",
+  "license": "MIT",
+  "main": "src/main.js",
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "start": "electron .",
+    "test": "node --test test/*.test.js",
+    "check": "node --check src/main.js && npm test",
+    "dist": "electron-builder"
+  },
+  "devDependencies": {
+    "electron": "45.2.2",
+    "electron-builder": "26.18.0"
+  },
+  "build": {
+    "appId": "io.github.luchitha7.fivehour",
+    "productName": "fivehour",
+    "files": [
+      "src/**/*",
+      "package.json"
+    ],
+    "mac": {
+      "target": "dmg",
+      "category": "public.app-category.productivity",
+      "extendInfo": {
+        "LSUIElement": true
+      }
+    },
+    "win": {
+      "target": "nsis"
+    },
+    "linux": {
+      "target": "AppImage",
+      "category": "Utility"
+    }
+  },
+  "allowScripts": {
+    "electron@45.2.2": true
+  }
+}
