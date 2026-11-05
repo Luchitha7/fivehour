@@ -14,3 +14,5 @@ First version.
 - Windows notes in the README
 - Installers for macOS (Apple Silicon and Intel), Windows (x64 and ARM) and Linux, built and published by GitHub Actions
 - Start at login switch in Settings; the panel opens on first launch
+- Update notice: daily check of GitHub releases, notification and Download button (can be turned off)
+- Panel offers live data for Claude desktop app and claude.ai users, and shows tokens when the exact % isn't known yet

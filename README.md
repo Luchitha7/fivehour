@@ -20,6 +20,7 @@ Shows how much of your current 5-hour window you've used, when it resets, and pi
   - a set time before the window resets (default **1 hour**; choose 15 min to 2 hours or off)
   - when a fresh window is available
 - **window anchoring** (optional): start your 5-hour windows on *your* schedule
+- **update notice**: a notification and a Download button when a new version is out
 
 ## Why
 
@@ -95,7 +96,10 @@ The status line updates when Claude Code gets a reply. If you only use claude.ai
 
 ## Privacy and security
 
-- Everything stays on your machine. The only network call is the **opt-in** live polling, which talks only to `api.anthropic.com` over HTTPS using the login Claude Code already stored. fivehour never stores or logs that token.
+- Everything stays on your machine. fivehour makes only two kinds of network request:
+  - **Live data** (only if you turn it on) talks to `api.anthropic.com` over HTTPS using the login Claude Code already stored. fivehour never stores or logs that token.
+  - **Update check**: once a day it asks GitHub for the latest fivehour release. No personal data is sent. You can turn it off in Settings.
+- fivehour never downloads or installs updates by itself. It tells you, and the **Download** button opens the release page.
 - The UI runs in sandboxed, context-isolated windows with a strict Content Security Policy, and can't navigate or open new windows.
 - Settings coming from the UI are validated against an allow-list before they're saved.
 
@@ -139,7 +143,8 @@ src/icon.js                 ring tray icon -> PNG, no native deps
 src/install.js              connect/disconnect the Claude Code status line
 src/hook/statusline.js      status line script (copied to ~/.fivehour/)
 src/sources/local-logs.js   5h block estimate from local logs
-src/sources/endpoint.js     opt-in live polling
+src/sources/endpoint.js     opt-in live data
+src/update.js               daily "update available" check
 src/ui/                     popup and widget
 ```
 

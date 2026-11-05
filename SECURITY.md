@@ -15,6 +15,7 @@ I'll reply as soon as I can and credit you in the fix if you'd like.
 | Claude Code login (macOS Keychain or `~/.claude/.credentials.json`) | read, **only if live polling is turned on** | call `api.anthropic.com/api/oauth/usage` |
 | `~/.fivehour/` | read/write | app settings and the latest usage numbers |
 | `claude` CLI | run, **only if window anchoring is on** | send one tiny message to start a window |
+| `api.github.com` | read, once a day, **unless turned off** | check for a newer fivehour release (no personal data sent) |
 
 The token is only ever sent to `api.anthropic.com` over HTTPS and is never written to disk or logs.
 
@@ -22,6 +23,7 @@ The token is only ever sent to `api.anthropic.com` over HTTPS and is never writt
 
 - Renderer windows use `contextIsolation`, `sandbox`, no Node integration, and a strict CSP with no inline scripts.
 - Navigation, new windows, webviews and permission requests are blocked.
+- The update notice only opens `https://github.com/Luchitha7/fivehour/releases/…` URLs, checked in the main process. It never downloads or runs anything.
 - Settings from the UI pass an allow-list with type and range checks. Values that reach a process call (model name, times) are restricted to safe characters.
 
 ## Known advisories
