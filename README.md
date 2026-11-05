@@ -110,6 +110,8 @@ Claude Code already knows your 5-hour % and reset time, because Anthropic sends 
 
 Live polling checks every 5 minutes and keeps the last good reading. If Anthropic answers "too many requests" (HTTP 429), it waits at least 10 minutes before trying again.
 
+Live data reads the login that **terminal** Claude Code keeps (the Mac Keychain, or `~/.claude/.credentials.json`). That login expires if you don't use Claude Code in a terminal for a while. The Claude desktop app keeps its own login, which other apps can't read. If fivehour says your login has expired, open a terminal, run `claude` and log in, then click **Try again**.
+
 Estimated numbers have a `~` in front, and the "% used" notification only fires on exact numbers.
 
 The status line updates when Claude Code gets a reply. If you only use claude.ai for a while, the % can lag until your next Claude Code message, unless live polling is on.

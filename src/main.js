@@ -187,9 +187,13 @@ async function pollEndpoint({ force = false } = {}) {
   endpointNextAt = Date.now() + delay;
   if (err) {
     const at = new Date(endpointNextAt).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
-    endpointError = err.status === 429
-      ? `Anthropic is limiting requests right now. Trying again at ${at}.`
-      : `${err.message}. Trying again at ${at}.`;
+    endpointError = err.code === 'expired'
+      ? 'Your Claude Code login has expired. Open Terminal, run "claude" and log in, then click Try again.'
+      : err.code === 'no-login'
+        ? 'No Claude Code login found. Open Terminal, run "claude" and log in, then click Try again.'
+        : err.status === 429
+          ? `Anthropic is limiting requests right now. Trying again at ${at}.`
+          : `${err.message}. Trying again at ${at}.`;
   }
   endpointTimer = setTimeout(pollEndpoint, delay);
   refresh();

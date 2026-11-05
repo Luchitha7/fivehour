@@ -25,6 +25,16 @@ test('release parsing only trusts this repo’s release pages', () => {
   assert.equal(parseRelease(null), null);
 });
 
+test('an expired or missing Claude Code login waits for the user', () => {
+  const { nextDelay, parseCredentials } = require('../src/sources/endpoint');
+  assert.equal(nextDelay({ code: 'expired' }, 1), 30 * 60e3);
+  assert.equal(nextDelay({ code: 'no-login' }, 1), 30 * 60e3);
+  assert.deepEqual(parseCredentials({ claudeAiOauth: { accessToken: 't', expiresAt: 5 } }), { token: 't', expiresAt: 5 });
+  assert.deepEqual(parseCredentials({ claudeAiOauth: { accessToken: 't' } }), { token: 't', expiresAt: null });
+  assert.equal(parseCredentials({ claudeAiOauth: { accessToken: '' } }), null);
+  assert.equal(parseCredentials({}), null);
+});
+
 test('live data backs off, hardest on 429', () => {
   const { nextDelay, retryAfterMs } = require('../src/sources/endpoint');
   const MIN = 60e3;

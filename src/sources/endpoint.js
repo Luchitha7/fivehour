@@ -8,20 +8,31 @@ const https = require('https');
 const { execFile } = require('child_process');
 const { CLAUDE_DIR } = require('../paths');
 
-function readToken() {
+/** Pull { token, expiresAt } out of Claude Code's stored credentials JSON, or null. */
+function parseCredentials(json) {
+  const o = json && json.claudeAiOauth;
+  if (!o || typeof o.accessToken !== 'string' || !o.accessToken) return null;
+  return { token: o.accessToken, expiresAt: Number.isFinite(o.expiresAt) ? o.expiresAt : null };
+}
+
+function readLogin() {
   return new Promise((resolve) => {
     const fromFile = () => {
-      try {
-        const j = JSON.parse(fs.readFileSync(path.join(CLAUDE_DIR, '.credentials.json'), 'utf8'));
-        resolve(j.claudeAiOauth && j.claudeAiOauth.accessToken);
-      } catch { resolve(null); }
+      try { resolve(parseCredentials(JSON.parse(fs.readFileSync(path.join(CLAUDE_DIR, '.credentials.json'), 'utf8')))); }
+      catch { resolve(null); }
     };
     if (process.platform !== 'darwin') return fromFile();
     execFile('security', ['find-generic-password', '-s', 'Claude Code-credentials', '-w'], (err, stdout) => {
       if (err) return fromFile();
-      try { resolve(JSON.parse(stdout.trim()).claudeAiOauth.accessToken); } catch { fromFile(); }
+      try { resolve(parseCredentials(JSON.parse(stdout.trim())) || null); } catch { fromFile(); }
     });
   });
+}
+
+function loginError(code, message) {
+  const err = new Error(message);
+  err.code = code;
+  return err;
 }
 
 function getJson(url, token) {
@@ -64,6 +75,7 @@ function nextDelay(err, failures) {
   const BASE = 5 * 60e3, MAX = 60 * 60e3;
   if (!err) return BASE;
   const backoff = Math.min(MAX, BASE * 2 ** Math.max(0, failures - 1));
+  if (err.code === 'expired' || err.code === 'no-login') return 30 * 60e3; // waits on the user, check now and then
   if (err.status === 429) return Math.min(MAX, Math.max(backoff, err.retryAfter || 0, 10 * 60e3));
   return backoff;
 }
@@ -76,11 +88,19 @@ function normalize(w) {
   return { used_percentage: w.utilization, resets_at: Math.floor(resets / 1000) };
 }
 
-async function fetchUsage() {
-  const token = await readToken();
-  if (!token) throw new Error('No Claude Code login found');
-  const d = await getJson('https://api.anthropic.com/api/oauth/usage', token);
+async function fetchUsage(now = Date.now()) {
+  const login = await readLogin();
+  if (!login) throw loginError('no-login', 'No Claude Code login found');
+  // Claude Code refreshes this login while it runs in a terminal. If it has expired, asking
+  // Anthropic would only get a 401, so don't.
+  if (login.expiresAt && login.expiresAt <= now) throw loginError('expired', 'Claude Code login expired');
+  let d;
+  try { d = await getJson('https://api.anthropic.com/api/oauth/usage', login.token); }
+  catch (e) {
+    if (e.status === 401 || e.status === 403) throw Object.assign(loginError('expired', 'Claude Code login not accepted'), { status: e.status });
+    throw e;
+  }
   return { source: 'endpoint', updated_at: Math.floor(Date.now() / 1000), five_hour: normalize(d.five_hour), seven_day: normalize(d.seven_day) };
 }
 
-module.exports = { fetchUsage, normalize, retryAfterMs, nextDelay };
+module.exports = { fetchUsage, normalize, retryAfterMs, nextDelay, parseCredentials };

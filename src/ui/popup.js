@@ -124,6 +124,10 @@ function render(s) {
   tick();
 }
 
+// A clicked button keeps focus, and macOS can draw the keyboard focus ring on it when the panel
+// reopens or the button is re-enabled. Mouse users never need that ring.
+document.addEventListener('mouseup', (e) => { const b = e.target.closest('button'); if (b) b.blur(); });
+
 const set = (patch) => window.timer.setConfig(patch).then(render);
 $('warnAt').addEventListener('change', (e) => set({ warnAtPercent: +e.target.value }));
 $('remindBefore').addEventListener('change', (e) => set({ remindBeforeResetMinutes: +e.target.value }));
