@@ -12,3 +12,5 @@ First version.
 - Runs on macOS, Windows and Linux
 - Connect checks that Node.js is installed and explains how to fix it if not
 - Windows notes in the README
+- Installers for macOS (Apple Silicon and Intel), Windows (x64 and ARM) and Linux, built and published by GitHub Actions
+- Start at login switch in Settings; the panel opens on first launch

@@ -27,26 +27,34 @@ The 5-hour window starts with your **first message**, not on a fixed clock. Say 
 
 fivehour makes the window visible, so you can plan big tasks around it.
 
-## Quick start
+## Download
 
-You need [Node.js](https://nodejs.org) 18+ and [Claude Code](https://docs.claude.com/en/docs/claude-code).
+**[⬇ Download the latest version](https://github.com/Luchitha7/fivehour/releases/latest)**
 
-```bash
-git clone https://github.com/Luchitha7/fivehour.git
-cd fivehour
-npm install
-npm start
-```
+| Your computer | File to download |
+| --- | --- |
+| Mac with Apple Silicon (M1, M2, M3, M4…) | `fivehour-…-mac-arm64.dmg` |
+| Mac with Intel | `fivehour-…-mac-x64.dmg` |
+| Windows (most PCs) | `fivehour-…-windows-x64-setup.exe` |
+| Windows on ARM | `fivehour-…-windows-arm64-setup.exe` |
+| Linux | `fivehour-…-linux-x86_64.AppImage` |
 
-1. Click the ring icon in your menu bar (macOS) or system tray (Windows/Linux).
+You also need [Claude Code](https://docs.claude.com/en/docs/claude-code) and [Node.js](https://nodejs.org) (LTS).
+
+### First launch
+
+fivehour isn't signed with a paid Apple or Microsoft certificate yet, so the first launch shows a warning. That's expected:
+
+- **Mac:** open the `.dmg` and drag fivehour into **Applications**. Open it. When macOS blocks it, go to **System Settings → Privacy & Security**, scroll down, and click **Open Anyway**.
+- **Windows:** if you see "Windows protected your PC", click **More info → Run anyway**.
+- **Linux:** run `chmod +x fivehour-*.AppImage`, then open it.
+
+### Set up (one minute)
+
+1. The fivehour panel opens on first launch. Later, click the ring icon in your menu bar (Mac) or system tray (Windows/Linux) to open it.
 2. Click **Connect**.
 3. Send any message in Claude Code. Your real usage appears.
-
-Build an installer (`.dmg`, `.exe` or AppImage) for the OS you're on:
-
-```bash
-npm run dist
-```
+4. Optional: in **Settings**, turn on **Start at login** and choose when you want notifications.
 
 ### Can't see the icon?
 
@@ -61,8 +69,7 @@ fivehour works on Windows 10 and 11. A few things that are different from macOS:
 | --- | --- |
 | **Node.js is required** | The status line script runs with Node.js. If you installed Claude Code with its native Windows installer, you may not have Node yet. Install the **LTS** version from [nodejs.org](https://nodejs.org), then restart fivehour. If Node is missing, **Connect** tells you instead of failing silently. |
 | **Where files live** | `~/.claude` means `%USERPROFILE%\.claude` (for example `C:\Users\you\.claude`). fivehour's own data is in `%USERPROFILE%\.fivehour`. |
-| **Run the commands in** | PowerShell or Windows Terminal. The Quick start commands work as written. |
-| **Building the `.exe`** | `npm run dist` builds the installer for the OS you're on, so run it on a Windows PC to get the `.exe` (it ends up in `dist\`). |
+| **Running from source** | Use PowerShell or Windows Terminal. The commands in *Run from source* work as written. |
 | **Window anchoring** | Needs the `claude` command to work in a new terminal. If it doesn't, anchoring shows "`claude` command wasn't found". |
 | **Notifications** | Appear in the Windows notification center. If you don't see any, check that *Focus assist / Do not disturb* is off. |
 
@@ -98,12 +105,28 @@ See [SECURITY.md](SECURITY.md) to report a vulnerability.
 
 Turn it on in Settings and enter times like `08:00, 13:00`. At each time, **if no window is running**, fivehour sends one tiny `claude -p` message (Haiku), so a new window starts right then. With `08:00`, your windows run 8-13, 13-18 and 18-23. Needs the `claude` CLI on your PATH.
 
-## Development
+## Run from source
 
 ```bash
-npm test        # unit tests, no Electron needed
+git clone https://github.com/Luchitha7/fivehour.git
+cd fivehour
+npm install
 npm start       # run the app
+npm test        # unit tests, no Electron needed
+npm run dist    # build installers for the OS you're on (output in dist/)
 ```
+
+### Releasing
+
+Bump `version` in `package.json`, commit, then push a matching tag:
+
+```bash
+git tag v0.1.0 && git push origin v0.1.0
+```
+
+GitHub Actions builds the Mac, Windows and Linux installers and publishes them on the [Releases](https://github.com/Luchitha7/fivehour/releases) page.
+
+## Development
 
 ```
 src/main.js                 tray, popup, timers, notifications
@@ -127,7 +150,7 @@ App data lives in `~/.fivehour/`. See [CONTRIBUTING.md](CONTRIBUTING.md).
 - Custom % and minutes, not just presets
 - History: how much of each window you actually used
 - Per-project breakdown from local logs
-- Signed installers, Homebrew and winget
+- Signed and notarized installers, Homebrew and winget
 
 ## License
 
