@@ -17,7 +17,7 @@ function render(s) {
   if (fh && !fh.active) { pct = 0; left = 'ready · fresh window'; }
   else if (fh) { pct = fh.pct; left = (fh.estimated ? '~' : '') + fmt(fh.resetsAt - Date.now()) + ' left'; }
   else if (!snap.connected) left = 'click ⋯ to connect';
-  $('pct').textContent = pct == null ? '–' : Math.round(pct) + '%';
+  $('pct').textContent = pct == null ? '–' : (fh && fh.pctEstimated ? '~' : '') + Math.round(pct) + '%';
   $('left').textContent = left;
   $('arc').setAttribute('stroke-dasharray', `${((pct || 0) / 100) * C} ${C}`);
   $('arc').setAttribute('stroke', color(pct, r));

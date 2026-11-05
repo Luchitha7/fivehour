@@ -44,9 +44,10 @@ function render(s) {
   $('connectHint').innerHTML = s.connected
     ? '<span class="ok">✓ Connected.</span> Send a message in the terminal to load it.'
     : 'Updates after each reply in the terminal.';
-  $('liveOn').disabled = cfg.pollEndpoint && !s.endpointError;
-  $('liveOn').textContent = cfg.pollEndpoint && !s.endpointError ? 'Loading…' : 'Turn on live data';
-  $('liveError').textContent = cfg.pollEndpoint && s.endpointError ? `Couldn't load: ${s.endpointError}` : '';
+  const waiting = cfg.pollEndpoint && (!s.endpointError || s.endpointWaiting);
+  $('liveOn').disabled = waiting;
+  $('liveOn').textContent = !waiting ? (cfg.pollEndpoint ? 'Try again' : 'Turn on live data') : s.endpointWaiting ? 'Waiting…' : 'Loading…';
+  $('liveError').textContent = cfg.pollEndpoint && s.endpointError ? s.endpointError : '';
 
   // tick on the ring at the "notify at" %
   const ang = cfg.warnAtPercent / 100 * 2 * Math.PI;
@@ -61,9 +62,11 @@ function render(s) {
     $('pct').textContent = fmtTokens(s.local.tokens).replace(/\.\d(?=[kM])/, '');
     $('pctLabel').textContent = 'tokens';
   } else {
-    $('pct').textContent = pct == null ? '–' : Math.round(pct) + '%';
-    $('pctLabel').textContent = 'used';
+    const est = fh && fh.pctEstimated;
+    $('pct').textContent = pct == null ? '–' : (est ? '~' : '') + Math.round(pct) + '%';
+    $('pctLabel').textContent = est ? 'est. used' : 'used';
   }
+  document.querySelector('.ring .pct').classList.toggle('long', $('pct').textContent.length > 3);
   $('arc').setAttribute('stroke-dasharray', `${((pct || 0) / 100) * C} ${C}`);
   $('arc').style.visibility = pct ? 'visible' : 'hidden'; // a zero-length round cap would draw a dot
   $('arc').setAttribute('stroke', color(pct, cfg.warnAtPercent));
@@ -81,7 +84,12 @@ function render(s) {
   } else {
     $('leftLabel').textContent = 'Resets in';
     $('at').textContent = 'at ' + time(fh.resetsAt);
-    $('fhNote').textContent = fh.estimated ? 'Reset time estimated from your Claude Code activity. Turn on live data above for the exact % and time.' : '';
+    const notes = {
+      calibrated: 'Estimated from your tokens, scaled by your last exact reading. Live data above gives the exact % and time.',
+      peak: 'Estimated: this window\'s tokens vs your busiest window in the last 30 days. Live data above gives the exact % and time.',
+    };
+    $('fhNote').textContent = !fh.estimated ? ''
+      : notes[fh.basis] || 'Reset time estimated from your Claude Code activity. Turn on live data above for the exact % and time.';
   }
 
   if (s.sevenDay) {
@@ -109,7 +117,7 @@ function render(s) {
   $('anchorEnabled').checked = cfg.anchorEnabled;
   if (document.activeElement !== $('anchors')) $('anchors').value = cfg.anchors.join(', ');
   $('pollEndpoint').checked = cfg.pollEndpoint;
-  $('endpointError').textContent = cfg.pollEndpoint && s.endpointError ? 'Polling failed: ' + s.endpointError : '';
+  $('endpointError').textContent = cfg.pollEndpoint && s.endpointError ? s.endpointError : '';
   $('anchorStatus').textContent = s.lastAnchor ? `${time(s.lastAnchor.at)}: ${s.lastAnchor.result}` : '';
   $('updated').textContent = (exact ? 'Updated ' + ago(s.updatedAt) : 'Exact % not loaded yet') + (s.appVersion ? ` · v${s.appVersion}` : '');
   tick();

@@ -24,6 +24,7 @@
   .ring { position: relative; width: 104px; height: 104px; flex: none; }
   .ring svg { transform: rotate(-90deg); }
   .ring .pct { position: absolute; inset: 0; display: grid; place-items: center; font-size: 24px; font-weight: 650; font-variant-numeric: tabular-nums; }
+  .ring .pct.long #pct { font-size: 20px; } /* "~86%" must clear the notify-at tick */
   .ring .pct small { display: block; font-size: 10px; font-weight: 500; color: var(--muted); text-align: center; margin-top: -4px; }
   .big { font-size: 22px; font-weight: 650; font-variant-numeric: tabular-nums; }
   .muted { color: var(--muted); }
