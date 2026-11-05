@@ -70,6 +70,7 @@ function render(s) {
   $('arc').setAttribute('stroke-dasharray', `${((pct || 0) / 100) * C} ${C}`);
   $('arc').style.visibility = pct ? 'visible' : 'hidden'; // a zero-length round cap would draw a dot
   $('arc').setAttribute('stroke', color(pct, cfg.warnAtPercent));
+  $('arc').style.color = color(pct, cfg.warnAtPercent); // for the Mac glow
 
   if (!fh) {
     $('leftLabel').textContent = 'No data yet';

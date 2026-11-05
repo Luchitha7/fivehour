@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- Frosted-glass panel on macOS, with Mac-style switches and buttons
 - Estimated "~% used" when no exact number is available, from local token counts
 - Estimates get more accurate after fivehour sees one exact reading
 - Live data backs off after "too many requests" (HTTP 429) instead of showing an error, and keeps the last good reading across restarts

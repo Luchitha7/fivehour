@@ -1,5 +1,10 @@
 const { contextBridge, ipcRenderer } = require('electron');
 
+// Mac gets the frosted-glass look (see html.mac in popup.html).
+if (process.platform === 'darwin') {
+  window.addEventListener('DOMContentLoaded', () => document.documentElement.classList.add('mac'));
+}
+
 contextBridge.exposeInMainWorld('timer', {
   getSnapshot: () => ipcRenderer.invoke('get-snapshot'),
   setConfig: (patch) => ipcRenderer.invoke('set-config', patch),
