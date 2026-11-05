@@ -77,4 +77,4 @@ function ringPng(size, pct, warnAt = 75) {
   return encodePng(size, rgba);
 }
 
-module.exports = { ringPng, colorFor };
+module.exports = { ringPng, colorFor, encodePng };
