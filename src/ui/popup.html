@@ -1,0 +1,145 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; img-src 'self'; connect-src 'none'; style-src 'self' 'unsafe-inline'; script-src 'self'">
+<title>fivehour</title>
+<style>
+  :root {
+    --bg: #f6f5f2; --card: #ffffff; --text: #1d1d1f; --muted: #6e6e73; --line: #e4e2dc;
+    --ok: #34c778; --warn: #f0a028; --bad: #e5484d; --track: #e7e5df; --accent: #c96442;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg: #1c1c1e; --card: #2a2a2d; --text: #f2f2f2; --muted: #9a9aa0; --line: #3a3a3e; --track: #3a3a3e; }
+  }
+  * { box-sizing: border-box; }
+  [hidden] { display: none !important; }
+  html, body { margin: 0; background: var(--bg); color: var(--text); font: 13px/1.4 -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif; user-select: none; }
+  body { padding: 14px; height: 100vh; overflow-y: auto; }
+  header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+  h1 { font-size: 13px; margin: 0; font-weight: 600; }
+  .badge { font-size: 11px; color: var(--muted); border: 1px solid var(--line); border-radius: 99px; padding: 1px 8px; }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 12px; margin-bottom: 10px; }
+  .hero { display: flex; gap: 14px; align-items: center; }
+  .ring { position: relative; width: 104px; height: 104px; flex: none; }
+  .ring svg { transform: rotate(-90deg); }
+  .ring .pct { position: absolute; inset: 0; display: grid; place-items: center; font-size: 24px; font-weight: 650; font-variant-numeric: tabular-nums; }
+  .ring .pct small { display: block; font-size: 10px; font-weight: 500; color: var(--muted); text-align: center; margin-top: -4px; }
+  .big { font-size: 22px; font-weight: 650; font-variant-numeric: tabular-nums; }
+  .muted { color: var(--muted); }
+  .label { font-size: 11px; text-transform: uppercase; letter-spacing: .04em; color: var(--muted); }
+  .bar { height: 6px; background: var(--track); border-radius: 99px; overflow: hidden; margin: 6px 0 4px; }
+  .bar > div { height: 100%; border-radius: 99px; }
+  .row { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+  button { font: inherit; border: 1px solid var(--line); background: var(--card); color: var(--text); border-radius: 8px; padding: 5px 10px; cursor: pointer; }
+  button.primary { background: var(--accent); border-color: var(--accent); color: #fff; }
+  button:disabled { opacity: .5; cursor: default; }
+  input[type=text] { font: inherit; width: 100%; padding: 5px 8px; border-radius: 8px; border: 1px solid var(--line); background: var(--bg); color: var(--text); }
+  select { font: inherit; padding: 3px 6px; border-radius: 8px; border: 1px solid var(--line); background: var(--bg); color: var(--text); }
+  details summary { cursor: pointer; font-weight: 600; list-style: none; }
+  details summary::after { content: "›"; float: right; color: var(--muted); transition: transform .15s; }
+  details[open] summary::after { transform: rotate(90deg); }
+  .setting { margin-top: 12px; }
+  .hint { font-size: 11px; color: var(--muted); margin-top: 3px; }
+  .warn { color: var(--warn); }
+  footer { display: flex; justify-content: space-between; align-items: center; font-size: 11px; color: var(--muted); padding: 2px 2px 0; }
+  footer button { padding: 2px 8px; font-size: 11px; }
+</style>
+</head>
+<body>
+  <header>
+    <h1>fivehour</h1>
+    <span class="badge" id="source">…</span>
+  </header>
+
+  <div class="card" id="setup" hidden>
+    <div style="font-weight:600;margin-bottom:4px">Connect Claude Code</div>
+    <div class="muted" style="margin-bottom:8px">Adds a status line so Claude Code reports your exact 5-hour % and reset time after each reply. Any status line you already have keeps working.</div>
+    <button class="primary" id="connect">Connect</button>
+    <div class="hint warn" id="setupError"></div>
+  </div>
+
+  <div class="card">
+    <div class="label">5-hour window</div>
+    <div class="hero" style="margin-top:6px">
+      <div class="ring">
+        <svg width="104" height="104" viewBox="0 0 104 104">
+          <circle cx="52" cy="52" r="44" fill="none" stroke="var(--track)" stroke-width="10"/>
+          <circle id="arc" cx="52" cy="52" r="44" fill="none" stroke="var(--ok)" stroke-width="10" stroke-linecap="round" stroke-dasharray="0 999"/>
+          <line id="warnTick" x1="52" y1="2" x2="52" y2="18" stroke="var(--text)" stroke-width="2" opacity=".55"/>
+        </svg>
+        <div class="pct"><div><span id="pct">–</span><small>used</small></div></div>
+      </div>
+      <div>
+        <div class="muted" id="leftLabel">Resets in</div>
+        <div class="big" id="left">–</div>
+        <div class="muted" id="at"></div>
+      </div>
+    </div>
+    <div class="hint" id="fhNote"></div>
+  </div>
+
+  <div class="card" id="weekCard" hidden>
+    <div class="row"><span class="label">Weekly limit</span><span id="weekPct"></span></div>
+    <div class="bar"><div id="weekBar"></div></div>
+    <div class="hint" id="weekReset"></div>
+  </div>
+
+  <div class="card" id="localCard" hidden>
+    <div class="label">This window in Claude Code (local logs)</div>
+    <div class="row" style="margin-top:4px"><span id="localTokens"></span><span class="muted" id="localMsgs"></span></div>
+  </div>
+
+  <div class="card">
+    <details id="settings">
+      <summary>Settings</summary>
+
+      <div class="setting row">
+        <span>Notifications</span><input type="checkbox" id="notifications">
+      </div>
+
+      <div class="setting row">
+        <span>Notify when usage reaches</span>
+        <select id="warnAt">
+          <option value="0">Off</option><option value="50">50%</option><option value="60">60%</option>
+          <option value="70">70%</option><option value="75">75%</option><option value="80">80%</option>
+          <option value="90">90%</option><option value="95">95%</option>
+        </select>
+      </div>
+
+      <div class="setting row">
+        <span>Remind me before reset</span>
+        <select id="remindBefore">
+          <option value="0">Off</option><option value="15">15 min</option><option value="30">30 min</option>
+          <option value="60">1 hour</option><option value="90">1.5 hours</option><option value="120">2 hours</option>
+        </select>
+      </div>
+
+      <div class="setting row">
+        <span>Floating widget</span><input type="checkbox" id="showWidget">
+      </div>
+
+      <div class="setting">
+        <div class="row"><span>Window anchoring</span><input type="checkbox" id="anchorEnabled"></div>
+        <input type="text" id="anchors" placeholder="08:00, 13:00" style="margin-top:6px">
+        <div class="hint">At these times, if no window is running, sends one tiny Claude Code message (Haiku) so a new 5-hour window starts on your schedule. Requires the <code>claude</code> CLI.</div>
+        <div class="row" style="margin-top:6px"><span class="hint" id="anchorStatus"></span><button id="anchorNow">Start window now</button></div>
+      </div>
+
+      <div class="setting">
+        <div class="row"><span>Live polling <span class="muted">(experimental)</span></span><input type="checkbox" id="pollEndpoint"></div>
+        <div class="hint">Keeps numbers fresh when you only use claude.ai, via the undocumented endpoint behind <code>/usage</code>. Uses your Claude Code login. May break without notice.</div>
+        <div class="hint warn" id="endpointError"></div>
+      </div>
+
+      <div class="setting row" id="disconnectRow" hidden>
+        <span class="muted">Claude Code status line connected</span><button id="disconnect">Disconnect</button>
+      </div>
+    </details>
+  </div>
+
+  <footer><span id="updated"></span><button id="quit">Quit</button></footer>
+
+<script src="popup.js"></script>
+</body>
+</html>
