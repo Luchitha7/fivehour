@@ -47,9 +47,9 @@
   .ok { color: var(--ok); }
   .step + .step { margin-top: 10px; padding-top: 10px; border-top: 1px solid var(--line); }
   .step .row { margin-top: 6px; }
-  /* Only show a focus ring for keyboard use, never after clicks or when the panel reopens. */
-  :focus { outline: none; }
-  :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 6px; }
+  /* Only show a focus ring while the keyboard is in use (popup.js sets html.kbd on Tab). */
+  :focus, :focus-visible { outline: none; }
+  html.kbd :focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 6px; }
   footer { display: flex; justify-content: space-between; align-items: center; font-size: 11px; color: var(--muted); padding: 2px 2px 0; }
   footer button { padding: 2px 8px; font-size: 11px; }
 

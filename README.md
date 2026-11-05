@@ -14,7 +14,7 @@ See how much you've used, when it resets, and get alerts before you run out, rig
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
 ![Platforms](https://img.shields.io/badge/platform-macOS%20%7C%20Windows%20%7C%20Linux-lightgrey)
 
-[**⬇ Download**](https://github.com/Luchitha7/fivehour/releases/latest) · [Features](#features) · [Set up](#set-up-one-minute) · [Privacy](#privacy-and-security) · [Contributing](CONTRIBUTING.md)
+[**⬇ Download**](https://github.com/Luchitha7/fivehour/releases/latest) · [Features](#features) · [Set up](#set-up-one-minute) · [Run from source](#run-from-source) · [Privacy](#privacy-and-security) · [Contributing](CONTRIBUTING.md)
 
 <br>
 
@@ -57,6 +57,8 @@ fivehour makes the window visible, so you can plan big tasks around it.
 | Linux | `fivehour-…-linux-x86_64.AppImage` |
 
 You also need [Claude Code](https://docs.claude.com/en/docs/claude-code) and [Node.js](https://nodejs.org) (LTS).
+
+Rather not install an app? You can [run it from source](#run-from-source) with `git clone` and `npm start`.
 
 ### First launch
 
@@ -133,14 +135,42 @@ Turn it on in Settings and enter times like `08:00, 13:00`. At each time, **if n
 
 ## Run from source
 
-```bash
-git clone https://github.com/Luchitha7/fivehour.git
-cd fivehour
-npm install
-npm start       # run the app
-npm test        # unit tests, no Electron needed
-npm run dist    # build installers for the OS you're on (output in dist/)
-```
+You can run fivehour straight from the code, without the `.dmg` or `.exe`. This also skips the "unidentified developer" warning, because nothing is downloaded as an app.
+
+**You need:** [git](https://git-scm.com), [Node.js](https://nodejs.org) 18 or newer (LTS), and [Claude Code](https://docs.claude.com/en/docs/claude-code).
+
+1. Get the code and install it (once):
+
+   ```bash
+   git clone https://github.com/Luchitha7/fivehour.git
+   cd fivehour
+   npm install
+   ```
+
+2. Start it:
+
+   ```bash
+   npm start
+   ```
+
+   The ring icon appears in your menu bar (Mac) or system tray (Windows/Linux), and the panel opens. There's no Dock icon. Then follow [Set up](#set-up-one-minute).
+
+3. To stop it, click the icon and choose **Quit**, or press `Ctrl+C` in the terminal.
+
+4. To update later, run this in the `fivehour` folder, then `npm start` again:
+
+   ```bash
+   git pull
+   npm install
+   ```
+
+Good to know when running from source:
+
+- fivehour runs only while that terminal is open. **Start at login** doesn't work from source, so use an installer if you want that.
+- Your settings and data are the same as the installed app's (`~/.fivehour/`), so you can switch between the two.
+- To make your own installer instead, run `npm run dist`. It's saved in `dist/`.
+
+For development: `npm test` runs the unit tests (no Electron needed).
 
 ### Releasing
 

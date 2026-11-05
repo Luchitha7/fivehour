@@ -124,9 +124,12 @@ function render(s) {
   tick();
 }
 
-// A clicked button keeps focus, and macOS can draw the keyboard focus ring on it when the panel
-// reopens or the button is re-enabled. Mouse users never need that ring.
-document.addEventListener('mouseup', (e) => { const b = e.target.closest('button'); if (b) b.blur(); });
+// Focus rings are for keyboard users only. A clicked button or "Settings" header keeps focus, and
+// Chromium can draw the ring on it when the panel reopens, so the ring is tied to html.kbd instead.
+const root = document.documentElement;
+document.addEventListener('keydown', (e) => { if (e.key === 'Tab') root.classList.add('kbd'); });
+document.addEventListener('mousedown', () => root.classList.remove('kbd'));
+document.addEventListener('mouseup', (e) => { const b = e.target.closest('button, summary'); if (b) b.blur(); });
 
 const set = (patch) => window.timer.setConfig(patch).then(render);
 $('warnAt').addEventListener('change', (e) => set({ warnAtPercent: +e.target.value }));
@@ -151,7 +154,7 @@ $('anchorNow').addEventListener('click', async (e) => { e.target.disabled = true
 $('quit').addEventListener('click', () => window.timer.quit());
 
 // Drop focus when the panel hides so nothing is highlighted when it reopens.
-window.addEventListener('blur', () => { if (document.activeElement) document.activeElement.blur(); });
+window.addEventListener('blur', () => { root.classList.remove('kbd'); if (document.activeElement) document.activeElement.blur(); });
 
 window.timer.onSnapshot(render);
 window.timer.getSnapshot().then(render);

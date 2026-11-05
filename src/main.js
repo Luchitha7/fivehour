@@ -120,7 +120,7 @@ function syncWidget() {
     webPreferences: WEB_PREFS,
   });
   widget.setAlwaysOnTop(true, 'floating');
-  widget.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true });
+  widget.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true, skipTransformProcessType: true });
   widget.loadFile(path.join(__dirname, 'ui', 'widget.html'));
   widget.once('ready-to-show', () => widget.showInactive());
   widget.on('moved', () => { const [x, y] = widget.getPosition(); config.update({ widgetPosition: { x, y } }); });
@@ -223,6 +223,9 @@ function createPopup() {
     backgroundColor: '#00000000', vibrancy: 'popover', visualEffectState: 'active',
     webPreferences: WEB_PREFS,
   });
+  // Open on whichever desktop (Space) the user is on, instead of switching back to the Space the
+  // panel was first created on. skipTransformProcessType keeps the Dock icon hidden.
+  if (process.platform === 'darwin') popup.setVisibleOnAllWorkspaces(true, { visibleOnFullScreen: true, skipTransformProcessType: true });
   popup.loadFile(path.join(__dirname, 'ui', 'popup.html'));
   popup.on('blur', () => { if (!popup.webContents.isDevToolsOpened()) popup.hide(); });
 }
