@@ -89,8 +89,12 @@ Claude Code already knows your 5-hour % and reset time, because Anthropic sends 
 | Source | What | Accuracy | Default |
 | --- | --- | --- | --- |
 | **Claude Code status line** | Claude Code's `rate_limits.five_hour` / `seven_day` (% used and reset time) | Exact, account-wide (includes claude.ai usage) | On after **Connect** |
-| **Local logs** | Tokens in the current window, read from `~/.claude/projects/**/*.jsonl` (same idea as [`ccusage blocks`](https://github.com/ccusage/ccusage)) | Estimate, Claude Code only | On |
+| **Local logs** | Tokens in the current window, read from `~/.claude/projects/**/*.jsonl` (same idea as [`ccusage blocks`](https://github.com/ccusage/ccusage)) | Estimate, Claude Code only. Shows **~%**: tokens vs your busiest window in the last 30 days, or scaled by your last exact reading once fivehour has seen one | On |
 | **Live polling** | The endpoint behind Claude Code's `/usage`, using your existing Claude Code login | Exact, but **undocumented** and may break | Off |
+
+Live polling checks every 5 minutes and keeps the last good reading. If Anthropic answers "too many requests" (HTTP 429), it waits at least 10 minutes before trying again.
+
+Estimated numbers have a `~` in front, and the "% used" notification only fires on exact numbers.
 
 The status line updates when Claude Code gets a reply. If you only use claude.ai for a while, the % can lag until your next Claude Code message, unless live polling is on.
 

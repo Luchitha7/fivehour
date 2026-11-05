@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+- Estimated "~% used" when no exact number is available, from local token counts
+- Estimates get more accurate after fivehour sees one exact reading
+- Live data backs off after "too many requests" (HTTP 429) instead of showing an error, and keeps the last good reading across restarts
+
 ## 0.1.0 (2026-11-05)
 
 First version.
