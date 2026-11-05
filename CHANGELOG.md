@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+## 0.1.2 (2026-11-05)
+
 - Clicking the widget opens the panel on the desktop you're on, instead of switching to another one (macOS)
 - No leftover highlight on Settings after clicking it
 - README explains how to run fivehour from source without installing

@@ -1,6 +1,6 @@
 {
   "name": "fivehour",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "private": true,
   "description": "Menu bar / system tray timer for your Claude 5-hour usage limit: % used, reset countdown, weekly limit and notifications. Unofficial.",
   "keywords": [
