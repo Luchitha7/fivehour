@@ -131,3 +131,50 @@ test('endpoint response is normalized and bad dates are dropped', () => {
   assert.equal(normalize({ resets_at: '2026-11-05T12:00:00Z' }), null);
   assert.equal(normalize(null), null);
 });
+
+test('estimated % from the busiest recent window, capped below 100', () => {
+  const local = { start: NOW - H, end: NOW + 4 * H, tokens: 600e3, peakTokens: 1e6 };
+  let s = buildSnapshot({ statusline: null, endpoint: null, local, now: NOW });
+  assert.equal(s.fiveHour.pct, 60);
+  assert.equal(s.fiveHour.pctEstimated, true);
+  assert.equal(s.fiveHour.basis, 'peak');
+  s = buildSnapshot({ local: { ...local, tokens: 2e6 }, now: NOW });
+  assert.equal(s.fiveHour.pct, null, 'past the record there is nothing to compare with');
+  s = buildSnapshot({ local: { ...local, tokens: 999.9e3 }, now: NOW });
+  assert.equal(s.fiveHour.pct, 99, 'capped below 100');
+  s = buildSnapshot({ local: { ...local, peakTokens: 5e3 }, now: NOW });
+  assert.equal(s.fiveHour.pct, null, 'too little history to guess');
+});
+
+test('a calibration from an exact reading beats the peak guess', () => {
+  const local = { start: NOW - H, end: NOW + 4 * H, tokens: 300e3, peakTokens: 1e6 };
+  const s = buildSnapshot({ local, calibration: 1.5e6, now: NOW });
+  assert.equal(s.fiveHour.pct, 20);
+  assert.equal(s.fiveHour.basis, 'calibrated');
+});
+
+test('calibrate learns tokens-per-100% only from a matching exact window', () => {
+  const { calibrate } = require('../src/usage');
+  const local = { start: NOW - H, end: NOW + 4 * H, tokens: 400e3 };
+  const exact = (pct, resetsAt) => buildSnapshot({
+    endpoint: { source: 'endpoint', updated_at: sec(NOW), five_hour: { used_percentage: pct, resets_at: sec(resetsAt) } }, local, now: NOW,
+  });
+  assert.equal(calibrate(exact(40, NOW + 4 * H)), 1e6);
+  assert.equal(calibrate(exact(5, NOW + 4 * H)), null, 'too small a % to trust');
+  assert.equal(calibrate(exact(40, NOW + 2.5 * H)), null, 'a different window');
+  assert.equal(calibrate(buildSnapshot({ local: { ...local, peakTokens: 1e6 }, now: NOW })), null, 'never from an estimate');
+});
+
+test('an expired exact reading gives way to a newer local window', () => {
+  const s = buildSnapshot({
+    endpoint: { source: 'endpoint', updated_at: sec(NOW - 6 * H), five_hour: { used_percentage: 90, resets_at: sec(NOW - H) } },
+    local: { start: NOW - 0.5 * H, end: NOW + 4.5 * H, tokens: 1, peakTokens: 0 }, now: NOW,
+  });
+  assert.equal(s.source, 'local-logs');
+  assert.equal(s.fiveHour.active, true);
+});
+
+test('alerts: an estimated % never fires the usage alarm', () => {
+  const r = evaluate({ now: NOW, fiveHour: { pct: 90, pctEstimated: true, resetsAt: NOW + 2 * H, active: true } }, { ...DEFAULTS }, {});
+  assert.equal(r.alerts.length, 0);
+});

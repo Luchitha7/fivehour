@@ -28,16 +28,18 @@ function evaluate(snap, cfg, mem = {}) {
 
   if (windowId && fh.pct != null) {
     const left = fh.resetsAt - snap.now;
-    // 1) Usage threshold: "You've used 75% of your 5-hour limit".
-    if (cfg.warnAtPercent > 0 && fh.pct >= cfg.warnAtPercent) {
+    // 1) Usage threshold: "You've used 75% of your 5-hour limit". Exact numbers only:
+    //    an estimate could be off by a lot, and a wrong alarm is worse than none.
+    if (cfg.warnAtPercent > 0 && !fh.pctEstimated && fh.pct >= cfg.warnAtPercent) {
       once(`used-${cfg.warnAtPercent}`, `${Math.round(fh.pct)}% of your 5-hour limit used`,
         `Resets in ${fmtDuration(left)} (at ${clock(fh.resetsAt)}).`);
     }
     // 2) Reset reminder: "Your 5-hour window resets in 1h".
     const before = cfg.remindBeforeResetMinutes;
     if (before > 0 && left <= before * 60000) {
+      const used = Math.round(fh.pct), about = fh.pctEstimated ? 'about ' : '';
       once(`reset-${before}`, `5-hour window resets in ${fmtDuration(left)}`,
-        `${Math.round(fh.pct)}% used, ${Math.max(0, Math.round(100 - fh.pct))}% still available until ${clock(fh.resetsAt)}.`);
+        `${about}${used}% used, ${about}${Math.max(0, 100 - used)}% still available until ${clock(fh.resetsAt)}.`);
     }
   }
 

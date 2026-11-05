@@ -107,12 +107,19 @@ function computeBlocks(entries) {
   return blocks;
 }
 
+const tokensOf = (b) => b.input + b.output;
+
+/**
+ * The block running now (or null), plus `peakTokens`: the most tokens used in any
+ * finished block over the last 30 days. That peak is the fallback yardstick for an
+ * estimated % when no exact number is available.
+ */
 function activeBlock(now = Date.now(), projectsDir) {
-  const entries = readEntries(now - 2 * BLOCK, projectsDir);
-  const blocks = computeBlocks(entries);
+  const blocks = computeBlocks(readEntries(now - 30 * 24 * HOUR, projectsDir));
   const b = blocks[blocks.length - 1];
   if (!b || now >= b.end) return null;
-  return { ...b, tokens: b.input + b.output };
+  const peakTokens = blocks.slice(0, -1).reduce((m, x) => Math.max(m, tokensOf(x)), 0);
+  return { ...b, tokens: tokensOf(b), peakTokens };
 }
 
 module.exports = { activeBlock, computeBlocks, readEntries };

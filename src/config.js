@@ -16,6 +16,7 @@ const DEFAULTS = {
   previousStatusLine: null,     // user's status line before we installed ours (internal)
   welcomed: false,              // first-launch panel already shown (internal)
   notifiedUpdate: null,         // version we already sent an update notification for (internal)
+  tokensPer100: null,           // tokens that made up 100% at the last exact reading (internal)
 };
 
 const TIME = /^([01]?\d|2[0-3]):[0-5]\d$/;
@@ -56,6 +57,7 @@ function normalize(raw) {
   if (sl && typeof sl === 'object' && typeof sl.command === 'string') cfg.previousStatusLine = sl;
   if (raw.welcomed === true) cfg.welcomed = true;
   if (typeof raw.notifiedUpdate === 'string' && /^\d+\.\d+\.\d+$/.test(raw.notifiedUpdate)) cfg.notifiedUpdate = raw.notifiedUpdate;
+  if (Number.isInteger(raw.tokensPer100) && raw.tokensPer100 > 0 && raw.tokensPer100 < 1e12) cfg.tokensPer100 = raw.tokensPer100;
   return cfg;
 }
 
@@ -84,7 +86,7 @@ function updateFromUser(patch) {
 
 /** Config as sent to the UI (no internal fields). */
 function publicView(cfg) {
-  const { previousStatusLine, widgetPosition, anchorModel, welcomed, notifiedUpdate, ...rest } = cfg;
+  const { previousStatusLine, widgetPosition, anchorModel, welcomed, notifiedUpdate, tokensPer100, ...rest } = cfg;
   return rest;
 }
 
