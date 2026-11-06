@@ -33,12 +33,21 @@ function render(s) {
   if (!s) return;
   const cfg = s.config, fh = s.fiveHour;
   const names = { statusline: 'Claude Code', endpoint: 'live', 'local-logs': 'estimate', none: 'no data' };
-  $('source').textContent = names[s.source] || s.source;
+  // Live data is on but failing (expired login, network…), not just waiting out a 429. The last good
+  // reading is still shown, so say so instead of looking live.
+  const liveStuck = cfg.pollEndpoint && !!s.endpointError && !s.endpointWaiting;
+  const stale = liveStuck && s.source === 'endpoint';
+  $('source').textContent = stale ? 'live · paused' : names[s.source] || s.source;
+  $('source').classList.toggle('warn', stale);
   const exact = s.source === 'statusline' || s.source === 'endpoint';
   $('updateCard').hidden = !s.update;
   if (s.update) $('updateText').textContent = `fivehour ${s.update.version} is available`;
   $('checkUpdates').checked = cfg.checkUpdates;
-  $('setup').hidden = exact;
+  $('setup').hidden = exact && !liveStuck;
+  const stuck = liveStuck && exact;
+  $('setup').classList.toggle('stuck', stuck);
+  $('setupTitle').textContent = stuck ? 'Live data stopped updating' : 'Get your exact % used';
+  $('stuckError').textContent = stuck ? s.endpointError : '';
   $('disconnectRow').hidden = !s.connected;
   $('connect').hidden = s.connected;
   $('connectHint').innerHTML = s.connected
