@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- When live data stops working (for example an expired Claude Code login), the panel says so with a Try again button, instead of quietly showing an old reading
+
 ## 0.1.2 (2026-11-05)
 
 - Clicking the widget opens the panel on the desktop you're on, instead of switching to another one (macOS)

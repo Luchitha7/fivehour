@@ -42,6 +42,8 @@
   details summary::after { content: "›"; float: right; color: var(--muted); transition: transform .15s; }
   details[open] summary::after { transform: rotate(90deg); }
   .setting { margin-top: 12px; }
+  /* Live data stopped: the setup card shrinks to the error and a Try again button. */
+  #setup:not(.stuck) .stuck-only, #setup.stuck .setup-only, #setup.stuck #liveError { display: none; }
   .hint { font-size: 11px; color: var(--muted); margin-top: 3px; }
   .warn { color: var(--warn); }
   .ok { color: var(--ok); }
@@ -128,14 +130,15 @@
   </div>
 
   <div class="card" id="setup" hidden>
-    <div style="font-weight:600">Get your exact % used</div>
+    <div style="font-weight:600" id="setupTitle">Get your exact % used</div>
     <div class="step">
-      <div class="muted">Use Claude Code in the <b>Claude desktop app</b> or <b>claude.ai</b>?</div>
-      <div class="row"><span class="hint">Reads usage with your Claude Code login. On a Mac, click <b>Always Allow</b> if asked.</span>
+      <div class="muted setup-only">Use Claude Code in the <b>Claude desktop app</b> or <b>claude.ai</b>?</div>
+      <div class="row"><span class="hint setup-only">Reads usage with your Claude Code login. On a Mac, click <b>Always Allow</b> if asked.</span>
+        <span class="hint warn stuck-only" id="stuckError"></span>
         <button class="primary" id="liveOn">Turn on live data</button></div>
       <div class="hint warn" id="liveError"></div>
     </div>
-    <div class="step">
+    <div class="step setup-only">
       <div class="muted">Use Claude Code in a <b>terminal</b>?</div>
       <div class="row"><span class="hint" id="connectHint">Updates after each reply in the terminal.</span>
         <button id="connect">Connect</button></div>
